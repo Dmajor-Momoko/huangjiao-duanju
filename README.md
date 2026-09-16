@@ -2,7 +2,10 @@
 
 用 Vue3 + Python 3.11(FastAPI) 搭建的短剧付费观看系统 MVP，用户端、管理后台、后端代码都在本目录下。
 
-<img src="docs/screenshots/android-home.png" width="280" alt="安卓 App 首页截图" />
+<p>
+  <img src="docs/screenshots/android-home.png" width="260" alt="Capacitor 套壳版首页截图" />
+  <img src="docs/screenshots/android-native/home.png" width="260" alt="原生 Android（Kotlin）版首页截图" />
+</p>
 
 ## 已实现（MVP）
 
