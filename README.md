@@ -117,14 +117,18 @@ duanju-v3/
 │   │   ├── api/                # axios 封装 + 接口定义
 │   │   └── router/
 │   └── vite.config.js         # dev 环境代理 /api 到后端 8811 端口
-└── admin/                     # 管理后台
-    ├── src/
-    │   ├── views/             # 登录/看板/分类/短剧+分集/套餐/用户/订单
-    │   ├── layouts/           # 侧边栏 + 顶栏布局
-    │   ├── stores/            # Pinia：管理员登录态
-    │   ├── api/
-    │   └── router/            # 路由守卫会校验 is_admin，非管理员踢回登录页
-    └── vite.config.js         # dev 端口 5174，同样代理 /api 到后端 8811
+├── admin/                     # 管理后台
+│   ├── src/
+│   │   ├── views/             # 登录/看板/分类/短剧+分集/套餐/用户/订单
+│   │   ├── layouts/           # 侧边栏 + 顶栏布局
+│   │   ├── stores/            # Pinia：管理员登录态
+│   │   ├── api/
+│   │   └── router/            # 路由守卫会校验 is_admin，非管理员踢回登录页
+│   └── vite.config.js         # dev 端口 5174，同样代理 /api 到后端 8811
+└── android-native/            # 原生 Android（Kotlin+Compose），和 frontend/android 的 Capacitor 套壳方案并存、互不依赖
+    └── app/src/main/java/com/huangjiao/duanju/android/
+        ├── data/               # Retrofit 接口、数据模型、SessionManager（token 持久化）
+        └── ui/                 # Compose 页面：登录/注册/首页/详情/播放
 ```
 
 ## 本地运行
@@ -164,9 +168,11 @@ npm run dev   # http://localhost:5174
 打开 http://localhost:5173 体验用户端：注册账号 → 看免费集 → 充值/开通VIP解锁后续集数。
 打开 http://localhost:5174 用初始管理员账号登录管理后台：建分类 → 建短剧 → 加分集 → 上线，用户端刷新即可看到。
 
-## 原生 App（iOS/Android）
+## App 壳（iOS/Android，Capacitor 套壳 Vue3）
 
 用户端 H5 套了一层 [Capacitor](https://capacitorjs.com/) 壳，不是重写——`frontend` 目录下的 Vue3 代码原样复用，打包时把构建产物塞进原生 WebView，额外获得可安装的 App 图标、上架商店的能力、以及按需接入原生 API（相机/推送等）的扩展空间。原生工程已生成在 `frontend/ios/` 和 `frontend/android/`（随仓库一起提交，可直接打开）。
+
+（另外还有一套**真正原生重写**的 Android 客户端，见下方"原生 Android"一节，和这套 Capacitor 方案并存、互不依赖，各有取舍。）
 
 **关键前提：原生 App 里"相对路径"会失效。** Web 版接口用 `/api/v1` 相对路径，靠和后端同源蹭到根路径；原生 App 跑在 `capacitor://localhost`（iOS）或 `http://localhost`（Android）这种壳自己的地址下，没有"同源"这回事，必须显式配置后端的完整地址：
 
@@ -222,3 +228,9 @@ npm run gen:icons   # capacitor-assets generate --ios --android，批量生成�
 ```
 
 要用真实设计稿替换时，直接覆盖 `frontend/assets/` 下的三个文件再跑上面这条命令即可，不用手动处理各种 DPI 目录。
+
+## 原生 Android（Kotlin + Jetpack Compose，独立于上面的 Capacitor 方案）
+
+`android-native/` 是一个**从零写的真原生 Android 客户端**，不经过 WebView，用 Kotlin + Compose 直接对接现有 FastAPI 后端。和上面的 Capacitor 套壳方案完全独立、并存，包名也不同（`com.huangjiao.duanju.android` vs Capacitor 版的 `com.huangjiao.duanju`），两个 App 能同时装在一台设备上对比。
+
+已经覆盖了 Web 端除少数边缘功能外的完整用户侧体验：核心看剧流程（注册/登录 → 首页列表/搜索/分类 → 短剧详情+收藏 → 分集播放+观看进度上报，含锁集逻辑）、底部导航（首页/追剧/我的）、账号与激励功能（签到、积分任务、卡密兑换、VIP购买、免广告购买、充值、意见反馈+传图、401自动登出）、分销推广（团队/佣金/邀请码）、提现（支付宝/微信/银行卡，微信收款码图片上传走系统相册选择器+Retrofit multipart，不需要额外的存储权限）。详见 [`android-native/README.md`](android-native/README.md)（技术栈、本地运行、`10.0.2.2` vs `localhost` 这类模拟器网络坑、以及和 Capacitor 版怎么选）。
